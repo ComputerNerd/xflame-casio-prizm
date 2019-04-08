@@ -60,7 +60,7 @@ struct globaldata
   SDL_Rect *rects;
 };
 
-void printhelp()
+static void printhelp()
 {
   printf("XFlame v1.0\n");
   printf("     By: The Rasterman (Carsten Haitzler)\n");
@@ -84,13 +84,13 @@ void printhelp()
   printf("  -height <h> : XFlame uses a window of height <h> pixels\n");
 }
 
-void fewargs()
+static void fewargs()
 {
   /* If someone gives too few arguments, then tell them so! */
   printf("Toow few Arguments!\n");
   return;
 }
-int powerof(unsigned int n)
+static int powerof(unsigned int n)
 {
   /* This returns the power of a number (eg powerof(8)==3, powerof(256)==8, */
   /* powerof(1367)==11, powerof(2568)==12) */
@@ -130,14 +130,14 @@ int powerof(unsigned int n)
   return p;
 }
 
-int OpenDisp(void)
+static int OpenDisp(void)
 {
   if ( SDL_Init(SDL_INIT_VIDEO) < 0 )
 	return(0);
   return(1);
 }
 
-int OpenWindow(struct globaldata *g,int w,int h)
+static int OpenWindow(struct globaldata *g,int w,int h)
 {
   g->screen = SDL_SetVideoMode(w, h, 8, g->flags);
   if (g->screen == NULL)
@@ -147,7 +147,7 @@ int OpenWindow(struct globaldata *g,int w,int h)
   return 1;
 }
 
-void
+static void
 SetFlamePalette(struct globaldata *gb, int f,int *ctab)
 {
   /*This function sets the flame palette */
@@ -189,7 +189,7 @@ SetFlamePalette(struct globaldata *gb, int f,int *ctab)
     }
 }
 
-void
+static void
 XFSetRandomFlameBase(int *f, int w, int ws, int h)
 {
   /*This function sets the base of the flame to random values */
@@ -206,7 +206,7 @@ XFSetRandomFlameBase(int *f, int w, int ws, int h)
     }
 }
 
-void
+static void
 XFModifyFlameBase(int *f, int w, int ws, int h)
 {
   /*This function modifies the base of the flame with random values */
@@ -223,7 +223,7 @@ XFModifyFlameBase(int *f, int w, int ws, int h)
     }
 }
 
-void
+static void
 XFProcessFlame(int *f, int w, int ws, int h, int *ff)
 {
   /*This function processes entire flame array */
@@ -261,7 +261,7 @@ XFProcessFlame(int *f, int w, int ws, int h, int *ff)
     }
 }
 
-void
+static void
 XFDrawFlameBLOK(struct globaldata *g,int *f, int w, int ws, int h, int *ctab)
 {
   /*This function copies & displays the flame image in one large block */
@@ -314,7 +314,7 @@ XFUpdate(struct globaldata *g)
 	}
 }
 
-void
+static void
 XFDrawFlameLACE(struct globaldata *g,int *f, int w, int ws, int h, int *ctab)
 {
   /*This function copies & displays the flame image in interlaced fashion */
@@ -403,7 +403,7 @@ XFDrawFlameLACE(struct globaldata *g,int *f, int w, int ws, int h, int *ctab)
   XFUpdate(g);
 }
 
-void
+static void
 XFDrawFlame(struct globaldata *g,int *f, int w, int ws, int h, int *ctab)
 {
   /*This function copies & displays the flame image in interlaced fashion */
@@ -470,7 +470,7 @@ XFDrawFlame(struct globaldata *g,int *f, int w, int ws, int h, int *ctab)
   XFUpdate(g);
 }
 
-int Xflame(struct globaldata *g,int w, int h, int f, int *ctab)
+static int Xflame(struct globaldata *g,int w, int h, int f, int *ctab)
 {
   int done;
   SDL_Event event;
@@ -547,94 +547,22 @@ int Xflame(struct globaldata *g,int w, int h, int f, int *ctab)
 }
 
 /* Here's the MAIN part of the program */
-main(int argc, char **argv)
+int main(void)
 {
   struct globaldata glob;
   char disp[256];	
   int flags;
-  int width,height,i,colortab[MAX];
+  int i,colortab[MAX];
   
   /* Set all the variable to default values */
   strcpy(disp,":0.0");
   flags=NONE;
-  width=128;
-  height=128;
+  const int width=160;
+  const int height=120;
   
   /* Check command line for arguments */
   glob.flags = SDL_SWSURFACE;
-  if (argc>1)
-    {
-      for (i=1;i<=argc;i++)
-	{
-	  /* if the user requests help */
-	  if (!strcmp("-h",argv[i-1]))
-	    {
-	      printhelp();
-	      exit(0); 
-	    }
-	  /* if the user requests to run on full display*/
-	  if (!strcmp("-fullscreen",argv[i-1]))
-	    {
-              glob.flags |= SDL_FULLSCREEN;
-	    }
-	  /* if the user requests drawing on video memory */
-	  if (!strcmp("-hw",argv[i-1]))
-	    {
-              glob.flags |= SDL_HWSURFACE;
-	    }
-	  /* if the user requests double-buffering */
-	  if (!strcmp("-flip",argv[i-1]))
-	    {
-              glob.flags |= SDL_DOUBLEBUF;
-	    }
-	  /* if the user requests to run with own colormap*/
-	  if (!strcmp("-cmap",argv[i-1]))
-	    {
-              glob.flags |= SDL_HWPALETTE;
-	      flags|=CMAP;
-	    }
-	  /* if the user requests to use Lace updating of the image */
-	  if (!strcmp("-lace",argv[i-1]))
-	    {
-	      flags|=LACE;
-	    }
-	  /* if the user requests to use Block updating of the image */
-	  if (!strcmp("-block",argv[i-1]))
-	    {
-	      flags|=BLOK;
-	    }
-	  /* if the user requests a particular width */
-	  if (!strcmp("-width",argv[i-1]))
-	    {
-	      if ((i+1)>argc)
-		{
-		  fewargs();
-		  exit(1);
-		}
-	      width=atoi(argv[i]);
-	      if (width<16)
-		{
-		  width=16;
-		}
-	      i++;
-	    }
-	  /* if the user requests a particular height */
-	  if (!strcmp("-height",argv[i-1]))
-	    {
-	      if ((i+1)>argc)
-		{
-		  fewargs();
-		  exit(1);
-		}
-	      height=atoi(argv[i]);
-	      if (height<16)
-		{
-		  height=16;
-		}
-	      i++;
-	    }
-	}
-    }
+  glob.flags |= SDL_FULLSCREEN;
   if (!OpenDisp())
     {
       printf("Could not initialize SDL: %s\n",SDL_GetError());
